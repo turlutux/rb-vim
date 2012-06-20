@@ -2,9 +2,9 @@
 " let g:pep8_map='whatever'
 " in your .vimrc
 " To change the color of
-command! Pep8 :call s:Pep8()
+command! -nargs=1 RB :call s:RB(<f-args>)
 
-function! s:Pep8()
+function! s:RB(rev)
   set lazyredraw
   " Close any existing cwindows.
   cclose
@@ -14,7 +14,7 @@ function! s:Pep8()
   set grepformat&vim
   let &grepformat = '%f:%l:%m'
   "let &grepprg = 'pep8 --repeat'
-  let &grepprg = '/home/aducoulombier/workspace/git/mvp/support/QA/pep8.py --ignore=W501'
+  let &grepprg = '/home/aducoulombier/project/rb-vim/vimrb.py -r 7997 --server "https://reviewboard-mvp.eng.vmware.com/"'
   if &readonly == 0 | update | endif
   silent! grep! %
   let &grepformat = l:grepformat_save
