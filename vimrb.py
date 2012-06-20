@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import urllib2
+import string
 from optparse import OptionParser
 from pkg_resources import parse_version
 from urlparse import urljoin, urlparse
@@ -15,11 +16,11 @@ from urlparse import urljoin, urlparse
 import pprint
 from rbtools import get_package_version, get_version_string
 from rbtools.api.errors import APIError
-#from rbtools.clients import scan_usable_client
-#from rbtools.clients.perforce import PerforceClient
-#from rbtools.clients.plastic import PlasticClient
+from rbtools.clients import scan_usable_client
+from rbtools.clients.perforce import PerforceClient
+from rbtools.clients.plastic import PlasticClient
 from rbtools.utils.filesystem import get_config_value, load_config_files
-#from rbtools.utils.process import die
+from rbtools.utils.process import die
 
 try:
     # Specifically import json_loads, to work around some issues with
@@ -181,10 +182,12 @@ class ReviewBoardServer(object):
     """
     An instance of a Review Board server.
     """
-    def __init__(self, url, cookie_file):
+    def __init__(self, url, info, cookie_file):
         self.url = url
         if self.url[-1] != '/':
             self.url += '/'
+        self._info = info
+        self._server_info = None
         self.root_resource = None
         self.deprecated_api = False
         self.cookie_file = cookie_file
@@ -524,12 +527,18 @@ class ReviewBoardServer(object):
             #print comment_rsp
 
             for j in comment_rsp['diff_comments']:
-                filename_rsp = self.api_get(j['links']['filediff']['href'])
+                #print "U"*11
+                #print j
+                #print "U"*10
+                try:
+                    filename_rsp = self.api_get(j['links']['filediff']['href'])
 
-                #print "@" * 30
-                #print filename_rsp
-
-                print filename_rsp['file']['dest_file'] + ":%d" % j['first_line'] + " " + j['text']
+                    #print "T" * 30
+                    #print filename_rsp
+                    print filename_rsp['file']['dest_file'] + ":%d" % j['first_line'] + " " + j['text']
+                except APIError:
+                    filename = string.split(j['links']['filediff']['title'], ' ')[0]
+                    print filename + ":%d" % j['first_line'] + " " + j['text']
 
 
     def get_review_request(self, rid):
@@ -654,6 +663,14 @@ class ReviewBoardServer(object):
             self.api_put(review_request['links']['draft']['href'], {
                 'public': 1,
             })
+
+    def _get_server_info(self):
+        if not self._server_info:
+            self._server_info = self._info.find_server_repository_info(self)
+
+        return self._server_info
+
+    info = property(_get_server_info)
 
     def process_json(self, data):
         """
@@ -1163,6 +1180,7 @@ def parse_options(args):
 
 
 def main():
+    origcwd = os.path.abspath(os.getcwd())
 
     if 'APPDATA' in os.environ:
         homepath = os.environ['APPDATA']
@@ -1179,10 +1197,17 @@ def main():
     cookie_file = os.path.join(homepath, ".post-review-cookies.txt")
     user_config, globals()['configs'] = load_config_files(homepath)
 
-    parse_options(sys.argv[1:])
+    args = parse_options(sys.argv[1:])
 
     debug('RBTools %s' % get_version_string())
     debug('Home = %s' % homepath)
+
+    repository_info, tool = scan_usable_client(options)
+    tool.user_config = user_config
+    tool.configs = configs
+
+    # Verify that options specific to an SCM Client have not been mis-used.
+    tool.check_options()
 
     # Try to find a valid Review Board server to use.
     if options.server:
@@ -1194,7 +1219,7 @@ def main():
         print "Unable to find a Review Board server for this source code tree."
         sys.exit(1)
 
-    server = ReviewBoardServer(server_url, cookie_file)
+    server = ReviewBoardServer(server_url, repository_info, cookie_file)
 
     # Handle the case where /api/ requires authorization (RBCommons).
     if not server.check_api_version():
