@@ -15,11 +15,11 @@ from urlparse import urljoin, urlparse
 import pprint
 from rbtools import get_package_version, get_version_string
 from rbtools.api.errors import APIError
-from rbtools.clients import scan_usable_client
-from rbtools.clients.perforce import PerforceClient
-from rbtools.clients.plastic import PlasticClient
+#from rbtools.clients import scan_usable_client
+#from rbtools.clients.perforce import PerforceClient
+#from rbtools.clients.plastic import PlasticClient
 from rbtools.utils.filesystem import get_config_value, load_config_files
-from rbtools.utils.process import die
+#from rbtools.utils.process import die
 
 try:
     # Specifically import json_loads, to work around some issues with
@@ -505,6 +505,33 @@ class ReviewBoardServer(object):
 
         return rsp['reviews']
 
+    def get_comment_user(self, rid):
+        """
+        Return the comment of user on file
+        """
+        url = 'api/review-requests/%s/reviews/' % (rid)
+
+        rsp = self.api_get(url)
+
+        for i in rsp['reviews']:
+            #print "#" * 30
+            #print i
+            #print "-" * 15
+
+            comment_rsp = self.api_get(i['links']['diff_comments']['href'])
+
+            #print "@" * 30
+            #print comment_rsp
+
+            for j in comment_rsp['diff_comments']:
+                filename_rsp = self.api_get(j['links']['filediff']['href'])
+
+                #print "@" * 30
+                #print filename_rsp
+
+                print filename_rsp['file']['dest_file'] + ":%d" % j['first_line'] + " " + j['text']
+
+
     def get_review_request(self, rid):
         """
         Returns the review request with the specified ID.
@@ -879,7 +906,8 @@ def tempt_fate(server, submit_as=None, retries=3):
     """
     try:
         if options.rid:
-            review_request = server.get_ship_it_reviewers(options.rid)
+            # review_request = server.get_ship_it_reviewers(options.rid)
+            review_request = server.get_comment_user(options.rid)
         else:
             die("Please give a review id")
 
