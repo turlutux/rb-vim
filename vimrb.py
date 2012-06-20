@@ -535,10 +535,10 @@ class ReviewBoardServer(object):
 
                     #print "T" * 30
                     #print filename_rsp
-                    print "./" + filename_rsp['file']['dest_file'] + ":%d" % j['first_line'] + " " + j['text']
+                    print filename_rsp['file']['dest_file'] + ":%d: %s" % (j['first_line'], j['text'])
                 except APIError:
                     filename = string.split(j['links']['filediff']['title'], ' ')[0]
-                    print "./" + filename + ":%d" % j['first_line'] + " " + j['text']
+                    print filename + ":%d: %s" % (j['first_line'], j['text'])
 
 
     def get_review_request(self, rid):

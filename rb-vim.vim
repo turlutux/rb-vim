@@ -4,6 +4,8 @@
 " To change the color of
 command! -nargs=1 RB :call s:RB(<f-args>)
 
+let s:current_file=expand("<sfile>:h:p")
+
 function! s:RB(rev)
   set lazyredraw
   " Close any existing cwindows.
@@ -14,7 +16,7 @@ function! s:RB(rev)
   set grepformat&vim
   let &grepformat = '%f:%l:%m'
   "let &grepprg = 'pep8 --repeat'
-  let &grepprg = '/home/aducoulombier/project/rb-vim/vimrb.py -r 7997 --server "https://reviewboard-mvp.eng.vmware.com/"'
+  let &grepprg = s:current_file . '/vimrb.py -r ' . a:rev
   if &readonly == 0 | update | endif
   silent! grep! %
   let &grepformat = l:grepformat_save
@@ -37,7 +39,7 @@ function! s:RB(rev)
 		  hi GreenBar term=reverse ctermfg=white ctermbg=darkgreen guifg=white guibg=darkgreen
 	  endif
 	  echohl GreenBar
-	  echomsg "PEP8 correct"
+	  echomsg "No diff comments"
 	  echohl None
 	  cclose
   endif
