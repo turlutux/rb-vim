@@ -867,11 +867,12 @@ def get_review_ship_it(server):
 def list_incoming_reviews(server):
 
     if options.username:
-        url = 'api/users/%s/watched/review-requests' % (options.username)
+        url = 'api/review-requests?to-users=%s' % (options.username)
 
         rsp = server.api_get(url)
 
-        print '\n'.join(rsp['watched_review_requests'])
+        for rev in rsp['review_requests']:
+            print rev['description'], "\t\t", rev['last_updated']
     else:
         die('You must provide a username (--username user) to list incoming review')
 
