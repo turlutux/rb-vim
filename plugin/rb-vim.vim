@@ -3,6 +3,7 @@
 " in your .vimrc
 " To change the color of
 command! -nargs=1 RB :call s:RB(<f-args>)
+command! -nargs=1 RBShip_it :call s:RBshipit(<f-args>)
 
 let s:current_file=expand("<sfile>:h:p")
 
@@ -43,6 +44,11 @@ function! s:RB(rev)
 	  echohl None
 	  cclose
   endif
+endfunction
+
+function! s:RBshipit(rev)
+  let s:reviewers = system(s:current_file . '/../lib/reviewboard.py who -r ' . a:rev)
+  execute "norm A ". s:reviewers
 endfunction
 
 "   if !exists('g:pep8_map')

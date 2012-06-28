@@ -859,7 +859,7 @@ def get_review_ship_it(server):
             if i['ship_it']:
                 l.append(i['links']['user']['title'])
 
-        print ', '.join(set(l))
+        sys.stdout.write(', '.join(set(l)))
     else:
         die('Provide a review id (-r #id) from where to get user who mark ship_it')
 
