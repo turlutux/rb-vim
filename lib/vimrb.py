@@ -1213,7 +1213,7 @@ def main():
     if options.server:
         server_url = options.server
     else:
-        server_url = "http://127.0.0.1:81/"
+        server_url = tool.scan_for_server(repository_info)
 
     if not server_url:
         print "Unable to find a Review Board server for this source code tree."

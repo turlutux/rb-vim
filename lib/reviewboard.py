@@ -866,15 +866,15 @@ def get_review_ship_it(server):
 
 def list_incoming_reviews(server):
 
-    if options.username:
-        url = 'api/review-requests?to-users=%s' % (options.username)
+    if options.track_user:
+        url = 'api/review-requests?to-users=%s' % (options.track_user)
 
         rsp = server.api_get(url)
 
         for rev in rsp['review_requests']:
-            print rev['description'], "\t\t", rev['last_updated']
+            print "%d:" % rev['id'], rev['links']['submitter']['title'], rev['last_updated'], "\t", rev['summary']
     else:
-        die('You must provide a username (--username user) to list incoming review')
+        die('You must provide a username (--user user) to list incoming review')
 
 
 def list_review_comment(server):
@@ -928,7 +928,7 @@ def tempt_fate(server, submit_as=None, retries=3):
             die("Please give a review id")
 
     except APIError, e:
-        if e.error_code == 103: # Not logged in
+        if e.error_code == 103:  # Not logged in
             retries = retries - 1
 
             # We had an odd issue where the server ended up a couple of
@@ -1049,6 +1049,12 @@ def parse_options(args):
                       metavar="USERNAME",
                       help="user name to be recorded as the author of the "
                            "review request, instead of the logged in user")
+    parser.add_option("--user",
+                      dest="track_user",
+                      default=get_config_value(configs, 'USER'),
+                      metavar="USER",
+                      help="user name to track on the reviewboard server"
+                           "server")
     parser.add_option("--username",
                       dest="username",
                       default=get_config_value(configs, 'USERNAME'),
@@ -1212,7 +1218,7 @@ def main():
     if options.server:
         server_url = options.server
     else:
-        server_url = "http://127.0.0.1:81/"
+        server_url = tool.scan_for_server(repository_info)
 
     if not server_url:
         print "Unable to find a Review Board server for this source code tree."

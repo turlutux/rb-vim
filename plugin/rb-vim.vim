@@ -16,7 +16,7 @@ function! s:RB(rev)
   set grepformat&vim
   let &grepformat = '%f:%l:%m'
   "let &grepprg = 'pep8 --repeat'
-  let &grepprg = s:current_file . '/vimrb.py -r ' . a:rev
+  let &grepprg = s:current_file . '/../lib/reviewboard.py review -r ' . a:rev
   if &readonly == 0 | update | endif
   silent! grep! %
   let &grepformat = l:grepformat_save
