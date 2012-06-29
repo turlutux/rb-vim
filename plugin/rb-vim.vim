@@ -3,7 +3,7 @@
 " in your .vimrc
 " To change the color of
 command! -nargs=1 RB :call s:RB(<f-args>)
-command! -nargs=1 RBShip_it :call s:RBshipit(<f-args>)
+command! -nargs=1 RBshipit :call s:RBshipit(<f-args>)
 
 let s:current_file=expand("<sfile>:h:p")
 
