@@ -871,11 +871,42 @@ def list_incoming_reviews(server):
 
         rsp = server.api_get(url)
 
+        l = []
         for rev in rsp['review_requests']:
-            print "%d:" % rev['id'], rev['links']['submitter']['title'], rev['last_updated'], "\t", rev['summary']
+            l.append( '[{id}] :{submitter}: {comment:<80} |{date}|'.format(id = rev['id'],
+                                                                       submitter = rev['links']['submitter']['title'],
+                                                                       comment = rev['summary'],
+                                                                       date = rev['last_updated']))
+            #print "[%d]" % rev['id'], rev['links']['submitter']['title'], rev['last_updated'], "\t", rev['summary']
+        print l
     else:
         die('You must provide a username (--user user) to list incoming review')
 
+def latest_files_diff_resource(server):
+
+    if options.rid:
+        rsp = diff_list_resource(server)
+
+        url = 'api/review-requests/%s/diffs/%s/files/' % (options.rid, rsp['total_results'])
+
+        rsp2 = server.api_get(url)
+
+        l = []
+        for diff_file in rsp2['files']:
+            l.append('{source}'.format(source=diff_file['source_file']))
+
+        print l
+    else:
+        die('You must provide a review id (-r #id) to get review comments')
+
+def diff_list_resource(server):
+
+    if options.rid:
+        url = 'api/review-requests/%s/diffs/' % (options.rid)
+
+        return server.api_get(url)
+    else:
+        die('You must provide a review id (-r #id) to get review comments')
 
 def list_review_comment(server):
     """
@@ -1241,6 +1272,9 @@ def main():
 
     if 'review' in args:
         list_review_comment(server)
+
+    if 'ldiff' in args:
+        latest_files_diff_resource(server)
 
     # tempt_fate(server)
 
