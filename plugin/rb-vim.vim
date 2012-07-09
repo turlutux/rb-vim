@@ -100,7 +100,10 @@ function! s:RBOpenRequest(...)
     "call s:RBLoadFileDiffs()
     "call s:RBLoadCurrentDraft()
     "call s:RBReturnToWindow()
-    call s:RBListFiles()
+    "call s:RBListFiles()
+    let l:json = system(g:rb_command." raw -r ".g:request_id)
+    let b:lines=split(l:json, '\n')
+    call rbpatch#PatchReview(b:lines)
 
 endfunction
 

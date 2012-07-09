@@ -908,6 +908,17 @@ def diff_list_resource(server):
     else:
         die('You must provide a review id (-r #id) to get review comments')
 
+def get_raw_diffs(server):
+    if options.rid:
+
+        url = '%sr/%s/diff/raw/' % (server.url, options.rid)
+
+        print url
+        print server.http_get(url)
+
+    else:
+        die('You must provide a review id (-r #id) to get review comments')
+
 def list_review_comment(server):
     """
     Return the comment of user on file
@@ -1276,6 +1287,8 @@ def main():
     if 'ldiff' in args:
         latest_files_diff_resource(server)
 
+    if 'raw' in args:
+        get_raw_diffs(server)
     # tempt_fate(server)
 
 
