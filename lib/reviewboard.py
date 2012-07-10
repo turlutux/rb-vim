@@ -578,6 +578,18 @@ class ReviewBoardServer(object):
                 'status': 'pending',
             })
 
+    def change_status(self, review_request, status):
+        """
+        Change the status of the review request
+        """
+
+        if status not in ['discarded', 'pending', 'submitted']:
+            die("Can't change status of review in %s" % status)
+
+        self.api_put(review_request['links']['self']['href'], {
+            'status': status,
+        })
+
     def publish(self, review_request):
         """
         Publishes a review request.
@@ -844,7 +856,7 @@ def debug(s):
         print ">>> %s" % s
 
 
-def get_review_ship_it(server):
+def get_review_ship_it(server, submit=False):
     """
     print the list of users who mark the review as shipable
 
@@ -860,6 +872,10 @@ def get_review_ship_it(server):
                 l.append(i['links']['user']['title'])
 
         sys.stdout.write(', '.join(set(l)))
+
+        if submit:
+            review_request = server.get_review_request(options.rid)
+            server.change_status(review_request, 'submitted')
     else:
         die('Provide a review id (-r #id) from where to get user who mark ship_it')
 
@@ -873,10 +889,10 @@ def list_incoming_reviews(server):
 
         l = []
         for rev in rsp['review_requests']:
-            l.append( '[{id}] :{submitter}: {comment:<80} |{date}|'.format(id = rev['id'],
-                                                                       submitter = rev['links']['submitter']['title'],
-                                                                       comment = rev['summary'],
-                                                                       date = rev['last_updated']))
+            l.append( '[{id}] :{submitter:^20}: {comment:<80} |{date}|'.format(id = rev['id'],
+                                                                        submitter = rev['links']['submitter']['title'],
+                                                                        comment = rev['summary'],
+                                                                        date = rev['last_updated']))
             #print "[%d]" % rev['id'], rev['links']['submitter']['title'], rev['last_updated'], "\t", rev['summary']
         print l
     else:
@@ -1276,7 +1292,10 @@ def main():
     server.login()
 
     if 'who' in args:
-        get_review_ship_it(server)
+        if 'submit' in args:
+            get_review_ship_it(server, submit=True)
+        else:
+            get_review_ship_it(server)
 
     if 'which' in args:
         list_incoming_reviews(server)
@@ -1289,7 +1308,9 @@ def main():
 
     if 'raw' in args:
         get_raw_diffs(server)
+
     # tempt_fate(server)
+
 
 
 if __name__ == "__main__":

@@ -72,7 +72,7 @@ function! s:RBChooseReview(...)
     if a:0 < 1
         call s:RBWindowOpen()
 
-        let l:json = system(g:rb_command." which --user user1")
+        let l:json = system(g:rb_command." which --user aducoulombier")
 
         " Affect the wrapper variable reviews to let vim knows we have a
         " list
@@ -168,8 +168,14 @@ function! s:RB(rev)
 endfunction
 command! -nargs=1 RB :call s:RB(<f-args>)
 
-function! s:RBshipit(rev)
-  let s:reviewers = system(s:current_file . '/../lib/reviewboard.py who -r ' . a:rev)
+function! s:RBshipit(...)
+  if len(a:000) == 2
+    if a:2 == 'submit'
+      let s:reviewers = system(s:current_file . '/../lib/reviewboard.py who submit -r ' . a:1)
+    endif
+  elseif len(a:000) == 1
+    let s:reviewers = system(s:current_file . '/../lib/reviewboard.py who -r ' . a:1)
+  endif
   execute "norm A ". s:reviewers
 endfunction
-command! -nargs=1 RBshipit :call s:RBshipit(<f-args>)
+command! -nargs=+ RBshipit :call s:RBshipit(<f-args>)
